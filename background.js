@@ -51,13 +51,65 @@ async function handleAIRequest(request, sendResponse) {
   }
 }
 
+function detectLanguage(text) {
+  // Simple language detection based on character patterns and common words
+  const patterns = {
+    'Chinese': /[\u4e00-\u9fff]/, // Chinese characters
+    'Japanese': /[\u3040-\u309f\u30a0-\u30ff]/, // Hiragana and Katakana
+    'Korean': /[\uac00-\ud7af]/, // Hangul
+    'Arabic': /[\u0600-\u06ff]/, // Arabic script
+    'Russian': /[\u0400-\u04ff]/, // Cyrillic
+    'Thai': /[\u0e00-\u0e7f]/, // Thai
+    'Vietnamese': /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i,
+    'French': /(je|le|la|les|de|et|un|une|vous|tu|il|elle|avec|pour|par|sur|dans|être|avoir|faire|dire|aller|voir|savoir|pouvoir|falloir|vouloir|venir|prendre|donner|mettre|tenir|sembler|laisser|devenir|croire|porter|regarder|suivre|trouver|rendre|passer|jouer|arriver|entendre|rester|sortir|partir|parler|demander|comprendre|attendre|vivre|écrire)/i,
+    'Spanish': /(el|la|de|que|y|a|en|un|es|se|no|te|lo|le|da|su|por|son|con|para|al|una|sur|del|las|los|como|pero|sus|le|ya|o|este|sí|porque|esta|entre|cuando|muy|sin|sobre|también|me|hasta|hay|donde|quien|desde|todo|nos|durante|todos|uno|les|ni|contra|otros|ese|eso|ante|ellos|e|esto|mí|antes|algunos|qué|unos|yo|otro|otras|otra|él|tanto|esa|estos|mucho|quienes|nada|muchos|cual|poco|ella|estar|estas|algunas|algo|nosotros|mi|mis|tú|te|ti|tu|tus|ellas|nosotras|vosotros|vosotras|os|mío|mía|míos|mías|tuyo|tuya|tuyos|tuyas|suyo|suya|suyos|suyas|nuestro|nuestra|nuestros|nuestras|vuestro|vuestra|vuestros|vuestras|esos|esas)/i,
+    'German': /(der|die|das|und|in|den|von|zu|das|mit|sich|auf|für|ist|im|dem|nicht|ein|eine|als|auch|es|an|werden|aus|er|hat|dass|sie|nach|wird|bei|einer|um|am|sind|noch|wie|einem|über|einen|so|zum|war|haben|nur|oder|aber|vor|zur|bis|unter|während|des)/i,
+    'Italian': /(il|di|che|e|la|per|un|in|con|del|da|non|a|le|si|nel|lo|una|su|come|dalla|dei|più|nel|tutto|anche|loro|molto|dove|quello|quando|questo|ogni|gli|tra|stesso|senza|fa|essere|ho|ha|abbiamo|avete|hanno|sono|sei|è|siamo|siete|fare|sto|stai|sta|stiamo|state|stanno)/i,
+    'Portuguese': /(o|a|de|que|e|do|da|em|um|para|é|com|não|uma|os|no|se|na|por|mais|as|dos|como|mas|foi|ao|ele|das|tem|à|seu|sua|ou|ser|quando|muito|há|nos|já|está|eu|também|só|pelo|pela|até|isso|ela|entre|era|depois|sem|mesmo|aos|ter|seus|suas|numa|pelos|pelas|esse|essa|meu|minha|meus|minhas|nosso|nossa|nossos|nossas|dele|dela|deles|delas|este|esta|estes|estas|esse|essa|esses|essas|aquele|aquela|aqueles|aquelas)/i
+  };
+
+  // Check for non-Latin scripts first
+  for (const [lang, pattern] of Object.entries(patterns)) {
+    if (['Chinese', 'Japanese', 'Korean', 'Arabic', 'Russian', 'Thai', 'Vietnamese'].includes(lang)) {
+      if (pattern.test(text)) {
+        return lang;
+      }
+    }
+  }
+
+  // For Latin-based languages, count matches
+  const latinLanguages = ['French', 'Spanish', 'German', 'Italian', 'Portuguese'];
+  let maxMatches = 0;
+  let detectedLang = 'English'; // Default
+
+  for (const lang of latinLanguages) {
+    const matches = (text.match(patterns[lang]) || []).length;
+    if (matches > maxMatches && matches > 2) { // Require at least 3 matches
+      maxMatches = matches;
+      detectedLang = lang;
+    }
+  }
+
+  return detectedLang;
+}
+
 async function callAI(settings, request) {
   const { provider, apiKey, model, customEndpoint } = settings;
   const { message, pageContent, url, title } = request;
 
+  // Detect the language of the user's message
+  const userLanguage = detectLanguage(message);
+  
+  // Create language-specific instruction
+  const languageInstruction = userLanguage !== 'English' 
+    ? `IMPORTANT: The user wrote their message in ${userLanguage}. Please respond in ${userLanguage} language.`
+    : '';
+
   const systemPrompt = `You are an AI assistant that helps users understand and analyze web pages. The user is currently viewing a page titled "${title}" at ${url}. Here's the page content:
 
 ${pageContent.content}
+
+${languageInstruction}
 
 Please provide helpful, accurate responses about this page content. Keep your responses concise and relevant.`;
 

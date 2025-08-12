@@ -39,10 +39,16 @@
   color: #333;
 }
 
-.close-sidebar {
+.header-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.close-sidebar, .clear-chat {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 18px;
   cursor: pointer;
   color: #666;
   padding: 0;
@@ -54,7 +60,11 @@
   border-radius: 4px;
 }
 
-.close-sidebar:hover {
+.close-sidebar {
+  font-size: 24px;
+}
+
+.close-sidebar:hover, .clear-chat:hover {
   background: #e9ecef;
   color: #333;
 }

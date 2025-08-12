@@ -16,7 +16,10 @@ function createSidebar() {
   sidebar.innerHTML = `
     <div class="sidebar-header">
       <h3>AI Assistant</h3>
-      <button class="close-sidebar">×</button>
+      <div class="header-buttons">
+        <button class="clear-chat" title="Start new conversation">🗑️</button>
+        <button class="close-sidebar">×</button>
+      </div>
     </div>
     <div class="conversation"></div>
     <div class="input-container">
@@ -28,6 +31,7 @@ function createSidebar() {
   document.body.appendChild(sidebar);
   
   sidebar.querySelector('.close-sidebar').addEventListener('click', closeSidebar);
+  sidebar.querySelector('.clear-chat').addEventListener('click', clearChat);
   sidebar.querySelector('.send-button').addEventListener('click', sendMessage);
   sidebar.querySelector('.chat-input').addEventListener('keydown', handleKeyPress);
 }
@@ -54,6 +58,12 @@ function toggleSidebar() {
   } else {
     openSidebar();
   }
+}
+
+function clearChat() {
+  if (!sidebar) return;
+  const conversation = sidebar.querySelector('.conversation');
+  conversation.innerHTML = '';
 }
 
 function handleKeyPress(event) {
