@@ -3,7 +3,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const providerSelect = document.getElementById('provider');
   const apiKeyInput = document.getElementById('apiKey');
   const modelInput = document.getElementById('model');
+  const customEndpointInput = document.getElementById('customEndpoint');
+  const customEndpointGroup = document.getElementById('customEndpointGroup');
   const testButton = document.getElementById('testButton');
+  const toggleSidebarButton = document.getElementById('toggleSidebarButton');
   const statusDiv = document.getElementById('status');
   const modelHints = document.getElementById('modelHints');
 
@@ -18,11 +21,25 @@ document.addEventListener('DOMContentLoaded', function() {
       'openai/gpt-4',
       'anthropic/claude-3-haiku',
       'meta-llama/llama-3.1-8b-instruct'
+    ],
+    custom: [
+      'LM Studio: Use loaded model name',
+      'Ollama: model-name:latest', 
+      'Text Generation WebUI: model name',
+      'Or check your server documentation'
     ]
   };
 
   providerSelect.addEventListener('change', function() {
     const provider = this.value;
+    
+    // Show/hide custom endpoint field
+    if (provider === 'custom') {
+      customEndpointGroup.style.display = 'block';
+    } else {
+      customEndpointGroup.style.display = 'none';
+    }
+    
     if (provider && modelSuggestions[provider]) {
       modelHints.textContent = `Popular models: ${modelSuggestions[provider].join(', ')}`;
     } else {
@@ -33,6 +50,8 @@ document.addEventListener('DOMContentLoaded', function() {
       modelInput.placeholder = 'e.g., gpt-3.5-turbo';
     } else if (provider === 'openrouter') {
       modelInput.placeholder = 'e.g., openai/gpt-3.5-turbo';
+    } else if (provider === 'custom') {
+      modelInput.placeholder = 'e.g., llama-3.2-3b-instruct';
     }
   });
 
@@ -47,8 +66,12 @@ document.addEventListener('DOMContentLoaded', function() {
     testConnection();
   });
 
+  toggleSidebarButton.addEventListener('click', function() {
+    toggleSidebar();
+  });
+
   function loadSettings() {
-    chrome.storage.sync.get(['provider', 'apiKey', 'model'], function(result) {
+    chrome.storage.sync.get(['provider', 'apiKey', 'model', 'customEndpoint'], function(result) {
       if (result.provider) {
         providerSelect.value = result.provider;
         providerSelect.dispatchEvent(new Event('change'));
@@ -58,6 +81,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       if (result.model) {
         modelInput.value = result.model;
+      }
+      if (result.customEndpoint) {
+        customEndpointInput.value = result.customEndpoint;
       }
     });
   }
@@ -69,12 +95,21 @@ document.addEventListener('DOMContentLoaded', function() {
       model: modelInput.value
     };
 
+    // Add custom endpoint if custom provider is selected
+    if (settings.provider === 'custom') {
+      settings.customEndpoint = customEndpointInput.value;
+      if (!settings.customEndpoint) {
+        showStatus('Please enter a custom API endpoint', 'error');
+        return;
+      }
+    }
+
     if (!settings.provider) {
       showStatus('Please select a provider', 'error');
       return;
     }
 
-    if (!settings.apiKey) {
+    if (!settings.apiKey && settings.provider !== 'custom') {
       showStatus('Please enter an API key', 'error');
       return;
     }
@@ -88,9 +123,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const provider = providerSelect.value;
     const apiKey = apiKeyInput.value;
     const model = modelInput.value;
+    const customEndpoint = customEndpointInput.value;
 
-    if (!provider || !apiKey) {
-      showStatus('Please fill in provider and API key first', 'error');
+    if (!provider) {
+      showStatus('Please select a provider first', 'error');
+      return;
+    }
+
+    if (provider === 'custom' && !customEndpoint) {
+      showStatus('Please enter a custom API endpoint', 'error');
+      return;
+    }
+
+    if (!apiKey && provider !== 'custom') {
+      showStatus('Please fill in API key first', 'error');
       return;
     }
 
@@ -118,6 +164,22 @@ document.addEventListener('DOMContentLoaded', function() {
     } finally {
       testButton.disabled = false;
       testButton.textContent = 'Test Connection';
+    }
+  }
+
+  async function toggleSidebar() {
+    try {
+      const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+      
+      if (!tab) {
+        showStatus('No active tab found', 'error');
+        return;
+      }
+
+      await chrome.tabs.sendMessage(tab.id, {action: 'toggleSidebar'});
+      showStatus('Sidebar toggled successfully', 'success');
+    } catch (error) {
+      showStatus('Failed to toggle sidebar. Make sure you\'re on a web page.', 'error');
     }
   }
 

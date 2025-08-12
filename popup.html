@@ -82,6 +82,21 @@
       background: #545b62;
     }
 
+    .btn-toggle {
+      background: #28a745;
+      color: white;
+      width: 100%;
+      margin: 15px 0;
+    }
+
+    .btn-toggle:hover {
+      background: #218838;
+    }
+
+    .sidebar-control {
+      margin: 15px 0;
+    }
+
     .status {
       margin-top: 10px;
       padding: 8px;
@@ -116,6 +131,13 @@
       color: #666;
       margin-top: 5px;
     }
+
+    .endpoint-hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -130,7 +152,19 @@
         <option value="">Select provider</option>
         <option value="openai">OpenAI</option>
         <option value="openrouter">OpenRouter</option>
+        <option value="custom">Custom OpenAI-compatible</option>
       </select>
+    </div>
+
+    <div class="form-group" id="customEndpointGroup" style="display: none;">
+      <label for="customEndpoint">API Endpoint:</label>
+      <input type="text" id="customEndpoint" placeholder="e.g., http://localhost:1234/v1">
+      <div class="endpoint-hint">
+        <strong>Common endpoints:</strong><br>
+        • LM Studio: http://localhost:1234/v1<br>
+        • Ollama: http://localhost:11434/v1<br>
+        • Text Generation WebUI: http://localhost:5000/v1
+      </div>
     </div>
 
     <div class="form-group">
@@ -149,6 +183,10 @@
       <button type="button" id="testButton" class="btn-secondary">Test Connection</button>
     </div>
   </form>
+
+  <div class="sidebar-control">
+    <button type="button" id="toggleSidebarButton" class="btn-toggle">Show/Hide Sidebar</button>
+  </div>
 
   <div class="shortcut">
     <strong>Keyboard shortcut:</strong> Ctrl+Shift+A to toggle sidebar

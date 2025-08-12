@@ -1,4 +1,4 @@
-#ai-assistant-sidebar {
+.ai-assistant-sidebar {
   position: fixed;
   top: 0;
   right: -400px;
@@ -14,11 +14,12 @@
   transition: right 0.3s ease-in-out;
 }
 
-#ai-assistant-sidebar.open {
+.ai-assistant-sidebar.open {
   right: 0;
 }
 
-.sidebar-open {
+/* Dynamic class for each sidebar instance to avoid conflicts */
+[class*="sidebar-open-"] {
   margin-right: 400px !important;
 }
 
@@ -38,7 +39,7 @@
   color: #333;
 }
 
-#close-sidebar {
+.close-sidebar {
   background: none;
   border: none;
   font-size: 24px;
@@ -53,7 +54,7 @@
   border-radius: 4px;
 }
 
-#close-sidebar:hover {
+.close-sidebar:hover {
   background: #e9ecef;
   color: #333;
 }
@@ -96,13 +97,58 @@
   border: 1px solid #f5c6cb;
 }
 
+/* Markdown styling for assistant messages */
+.message.assistant strong {
+  font-weight: 600;
+}
+
+.message.assistant em {
+  font-style: italic;
+}
+
+.message.assistant code {
+  background: #e9ecef;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  color: #d63384;
+}
+
+.message.assistant pre {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.message.assistant pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: #333;
+  font-size: 12px;
+}
+
+.message.assistant a {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.message.assistant a:hover {
+  color: #0056b3;
+}
+
 .input-container {
   padding: 20px;
   border-top: 1px solid #e0e0e0;
   background: #f8f9fa;
 }
 
-#chat-input {
+.chat-input {
   width: 100%;
   min-height: 60px;
   padding: 12px;
@@ -115,13 +161,13 @@
   margin-bottom: 12px;
 }
 
-#chat-input:focus {
+.chat-input:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-#send-button {
+.send-button {
   width: 100%;
   padding: 12px 20px;
   background: #007bff;
@@ -134,11 +180,11 @@
   transition: background-color 0.2s;
 }
 
-#send-button:hover {
+.send-button:hover {
   background: #0056b3;
 }
 
-#send-button:disabled {
+.send-button:disabled {
   background: #6c757d;
   cursor: not-allowed;
 }
